@@ -3,8 +3,6 @@ import { ENV } from "./config/env.js";
 
 const app = express();
 
-const PORT = process.env.PORT;
-
 app.get("/", (req, res) => {
   res.send("Hello world");
 });
