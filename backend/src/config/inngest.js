@@ -1,6 +1,9 @@
 import { Inngest } from "inngest";
 import { connectDB } from "./db.js";
 import { User } from "../models/user.model.js";
+import { upsertStreamUser } from "./stream.js";
+import { streamClient } from "./stream.js";
+
 export const inngest = new Inngest({ id: "slack-clone" });
 
 const syncUser = inngest.createFunction(
@@ -19,6 +22,11 @@ const syncUser = inngest.createFunction(
     };
 
     await User.create(newUser);
+    await upsertStreamUser({
+      id: newUser.clerkId.toString(),
+      name: newUser.name,
+      image: newUser.image,
+    });
   }
 );
 
@@ -29,8 +37,18 @@ const deleteUserFromDB = inngest.createFunction(
     await connectDB();
     const { id } = event.data;
     await User.deleteOne({ clerkId: id });
-    // await deleteStreamUser(id.toString());
+    await deleteStreamUser(id.toString());
   }
 );
+
+export const generateStreamToken = (userId) => {
+  try {
+    const userIdString = userId.toString();
+    return streamClient.createToken(userIdString);
+  } catch (error) {
+    console.log("Error generating Stream token:", error);
+    return null;
+  }
+};
 
 export const functions = [syncUser, deleteUserFromDB];
