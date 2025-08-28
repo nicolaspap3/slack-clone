@@ -1,4 +1,5 @@
 import "../instrument.mjs";
+import cors from "cors";
 import express from "express";
 import { ENV } from "./config/env.js";
 import { connectDB } from "./config/db.js";
@@ -10,8 +11,13 @@ import * as Sentry from "@sentry/node";
 const app = express();
 
 app.use(express.json());
+app.use(
+  cors({
+    origin: "https://slack-clone-kappa-seven.vercel.app",
+    credentials: true,
+  })
+);
 app.use(clerkMiddleware()); // req.auth will be available in the request object
-
 app.get("/debug-sentry", (req, res) => {
   throw new Error("My first Sentry error!!!!");
 });
